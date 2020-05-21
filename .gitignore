@@ -22,3 +22,12 @@ fe.log
 *.njsproj
 *.sln
 *.sw?
+
+# config file
+/src/firebaseConfig.js
+
+# firebase cache
+.firebase/*
+
+# package-lock json
+package-lock.json

@@ -8,7 +8,7 @@
       <div v-if="!loading" class="container">
         <div class="explorer-card">
           <header>
-            <h1>Address</h1>
+            <h1>ONE Holders</h1>
           </header>
 
           <div class="explorer-card-body">
@@ -73,14 +73,11 @@ export default {
     },
     getData() {
       axios
-        // .get('http://analytics.hmny.io/view/monitor/one_holder/json/data.json')
-        .get('/data.json')
+        .get('https://harmony-explorer-mainnet.firebaseio.com/one-holder.json')
         .then(response => {
           const { data } = response;
-
           const resData = [];
           let i = 0;
-
           while (data.address[i] !== undefined) {
             resData.push({
               address: data.address[i],
@@ -89,7 +86,6 @@ export default {
             });
             i++;
           }
-
           this.allTxs = resData;
           this.loading = false;
         });

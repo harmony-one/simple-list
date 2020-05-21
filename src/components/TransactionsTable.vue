@@ -7,7 +7,7 @@
     <header>
       <slot></slot>
       <div class="pagination-controls">
-        <span class="total-tx-num">{{ txCount }} txs</span>
+        <span class="total-tx-num">{{ txCount }} total </span>
         <span class="page-controllers">
           <span class="page-navigator">
             <button
