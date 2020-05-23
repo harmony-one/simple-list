@@ -50,18 +50,20 @@
         <table class="explorer-table">
           <tr>
             <th>Address</th>
-            <th>Balance</th>
-            <th>Transactions</th>
+            <th class="text-right">Balance</th>
+            <th class="text-right">Transactions</th>
           </tr>
           <tr v-for="tx in txs" :key="tx.hash">
-            <td>
-              {{ tx.address }}
+            <td class="address_link">
+              <a :href="'https://explorer.harmony.one/#/address/' + tx.address">
+                {{ tx.address }}
+              </a>
             </td>
-            <td class="no-break">
+            <td class="text-right">
               {{ tx.balance }}
             </td>
-            <td class="no-break">
-              {{ tx.transactions }}
+            <td class="text-right">
+              {{ tx.transactions | number }}
             </td>
           </tr>
         </table>
