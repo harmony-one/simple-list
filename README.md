@@ -1,6 +1,6 @@
-# harmony-dashboard
+# harmony-one-holder dashboard
 
-The dashboard for harmony blockchain displaying interesting metrics.
+The dashboard for harmony blockchain displaying one holders' balance and txs count.
 
 ## Build Setup
 
