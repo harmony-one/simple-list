@@ -7,7 +7,9 @@
     <header>
       <slot></slot>
       <div class="pagination-controls">
-        <span class="total-tx-num">{{ txCount }} total </span>
+        <span class="total-tx-num">
+          {{ txCount }} total | updating every 5 minutes
+        </span>
         <span class="page-controllers">
           <span class="page-navigator">
             <button
@@ -50,8 +52,9 @@
         <table class="explorer-table">
           <tr>
             <th>Address</th>
-            <th class="text-right">Balance</th>
             <th class="text-right">Transactions</th>
+            <th class="text-right">Available ONE</th>
+            <th class="text-right">Total ONE</th>
           </tr>
           <tr v-for="tx in txs" :key="tx.hash">
             <td class="address_link">
@@ -60,10 +63,13 @@
               </a>
             </td>
             <td class="text-right">
+              {{ tx.transactions | number }}
+            </td>
+            <td class="text-right">
               {{ tx.balance }}
             </td>
             <td class="text-right">
-              {{ tx.transactions | number }}
+              {{ tx.totalBalance }}
             </td>
           </tr>
         </table>

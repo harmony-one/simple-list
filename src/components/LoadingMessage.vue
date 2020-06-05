@@ -19,7 +19,7 @@
     <div>
       <i class="loading-spinner" />
       <div class="loading-message-text">
-        Loading...
+        loading ...
       </div>
     </div>
   </div>

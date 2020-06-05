@@ -81,8 +81,9 @@ export default {
           while (data.address[i] !== undefined) {
             resData.push({
               address: data.address[i],
-              balance: data.balance[i],
               transactions: data['transaction-count'][i],
+              balance: data['available-ONE'][i],
+              totalBalance: data['total-balance'][i],
             });
             i++;
           }
