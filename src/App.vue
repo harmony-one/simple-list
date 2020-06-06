@@ -1,5 +1,6 @@
 <style lang="less">
 @import './less/common.less';
+@import './less/material-icons.css';
 
 * {
   padding: 0;

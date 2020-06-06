@@ -12,13 +12,13 @@
           </header>
 
           <div class="explorer-card-body">
-            <TransactionsTable
-              :all-txs="allTxs"
-              with-shards="true"
-              :page="page"
-              :changePage="changePage"
-            >
-            </TransactionsTable>
+            <PanelPagination :pagination="pagination" :total="allTxs.length" />
+            <BaseGrid
+              :sort="sort"
+              :columns="columns"
+              :data="dataList"
+              :on-row-click="() => ({})"
+            />
           </div>
         </div>
       </div>
@@ -31,20 +31,39 @@
 
 <script>
 import LoadingMessage from './LoadingMessage';
-import TransactionsTable from './TransactionsTable';
+import BaseGrid from './BaseGrid';
+import PanelPagination from './BaseGrid/PanelPagination';
 import axios from 'axios';
+import { formatNumber, shortDecimals } from '../filter';
+import Address from './fields/Address';
 
 export default {
   name: 'AddressPage',
   components: {
     LoadingMessage,
-    TransactionsTable,
+    BaseGrid,
+    PanelPagination,
   },
   data() {
     return {
       loading: true,
       allTxs: [],
+      sort: {
+        property: null,
+        order: `asc`,
+      },
+      pagination: {
+        pageIndex: 0,
+        pageSize: 20,
+      },
     };
+  },
+  watch: {
+    $route() {
+      // if (this.$route.params.address !== (this.address && this.address.id)) {
+      //   this.getAddress();
+      // }
+    },
   },
   computed: {
     txCount() {
@@ -53,12 +72,65 @@ export default {
     page() {
       return this.$route.query.page - 1 || 0;
     },
-  },
-  watch: {
-    $route() {
-      // if (this.$route.params.address !== (this.address && this.address.id)) {
-      //   this.getAddress();
-      // }
+    dataList() {
+      const { property, order } = this.sort;
+      const { pageIndex, pageSize } = this.pagination;
+
+      let data = this.allTxs.slice();
+
+      if (property && order) {
+        data = data.sort((a, b) => {
+          a = a[property];
+          b = b[property];
+
+          if (typeof a === 'number') {
+            return order === 'asc' ? a - b : b - a;
+          }
+
+          return order === 'asc' ? a > b : a < b;
+        });
+      }
+
+      data = data.splice(pageIndex * pageSize, pageSize);
+
+      return data;
+    },
+    columns() {
+      let props = [
+        {
+          title: `Address`,
+          value: `address`,
+          key: item => item.address,
+          align: 'left',
+          // width: '96px',
+          renderComponent: Address,
+        },
+        {
+          title: `Transactions`,
+          value: `transactions`,
+          width: '180px',
+          align: 'right',
+          key: item => item.address,
+          render: value => formatNumber(value),
+        },
+        {
+          title: `Available ONE`,
+          value: `balance`,
+          key: item => item.address,
+          width: '200px',
+          align: 'right',
+          render: value => shortDecimals(value),
+        },
+        {
+          title: `Total ONE`,
+          value: `totalBalance`,
+          width: '200px',
+          align: 'right',
+          render: value => shortDecimals(value),
+        },
+      ];
+
+      return props;
     },
   },
   mounted() {
@@ -82,8 +154,12 @@ export default {
             resData.push({
               address: data.address[i],
               transactions: data['transaction-count'][i],
-              balance: data['available-ONE'][i],
-              totalBalance: data['total-balance'][i],
+              balance: data['available-ONE'][i]
+                ? parseFloat(data['available-ONE'][i].replace(/,/g, ''))
+                : 0,
+              totalBalance: data['total-balance'][i]
+                ? parseFloat(data['total-balance'][i].replace(/,/g, ''))
+                : 0,
             });
             i++;
           }

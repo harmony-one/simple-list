@@ -8,6 +8,23 @@ import Vue from 'vue';
  */
 moment.relativeTimeThreshold('ss', 0);
 
+const language = 'en-US'; // window.navigator.userLanguage || window.navigator.language
+
+function truncate(number, digits) {
+  return Math.trunc(number * Math.pow(10, digits)) / Math.pow(10, digits);
+}
+
+function setDecimalLength(value, minLength, maxLength) {
+  return new Intl.NumberFormat(language, {
+    minimumFractionDigits: minLength,
+    maximumFractionDigits: maxLength,
+  }).format(truncate(value, maxLength));
+}
+
+export function shortDecimals(value) {
+  return setDecimalLength(value, 2, 9);
+}
+
 export function formatDecimal(number) {
   return formatNumber((+number).toFixed(2));
 }
