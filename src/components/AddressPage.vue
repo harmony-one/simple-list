@@ -1,5 +1,39 @@
 <style scoped lang="less">
 @import '../less/common.less';
+
+.search {
+  width: 15em;
+  margin-left: @space-md;
+  flex: none;
+  height: 2em;
+  overflow: hidden;
+  position: relative;
+  color: var(--color-table-text);
+  border: 1px solid var(--color-table-text);
+  border-radius: 2em;
+  .search-icon {
+    position: absolute;
+    top: 50%;
+    left: @space-sm;
+    transform: translateY(-50%);
+  }
+  input[type='text'] {
+    border-radius: 2em;
+    padding: @space-sm @space-md;
+    padding-left: 3em;
+    border: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    &::placeholder {
+      color: var(--color-table-text);
+    }
+    &:focus {
+      outline: none;
+      box-shadow: none;
+    }
+  }
+}
 </style>
 
 <template>
@@ -12,13 +46,26 @@
           </header>
 
           <div class="explorer-card-body">
-            <TransactionsTable
-              :all-txs="allTxs"
-              with-shards="true"
-              :page="page"
-              :changePage="changePage"
+            <PanelPagination
+              :pagination="pagination"
+              :total="filteredData.length"
             >
-            </TransactionsTable>
+              <div class="search">
+                <font-awesome-icon class="search-icon" icon="search" />
+                <input
+                  v-model="searchValue"
+                  type="text"
+                  placeholder="Address"
+                  @keyup.enter="search"
+                />
+              </div>
+            </PanelPagination>
+            <BaseGrid
+              :sort="sort"
+              :columns="columns"
+              :data="dataList"
+              :on-row-click="() => ({})"
+            />
           </div>
         </div>
       </div>
@@ -31,20 +78,40 @@
 
 <script>
 import LoadingMessage from './LoadingMessage';
-import TransactionsTable from './TransactionsTable';
+import BaseGrid from './BaseGrid';
+import PanelPagination from './BaseGrid/PanelPagination';
 import axios from 'axios';
+import { formatNumber, shortDecimals } from '../filter';
+import Address from './fields/Address';
 
 export default {
   name: 'AddressPage',
   components: {
     LoadingMessage,
-    TransactionsTable,
+    BaseGrid,
+    PanelPagination,
   },
   data() {
     return {
       loading: true,
       allTxs: [],
+      sort: {
+        property: null,
+        order: `asc`,
+      },
+      pagination: {
+        pageIndex: 0,
+        pageSize: 20,
+      },
+      searchValue: '',
     };
+  },
+  watch: {
+    $route() {
+      // if (this.$route.params.address !== (this.address && this.address.id)) {
+      //   this.getAddress();
+      // }
+    },
   },
   computed: {
     txCount() {
@@ -53,12 +120,72 @@ export default {
     page() {
       return this.$route.query.page - 1 || 0;
     },
-  },
-  watch: {
-    $route() {
-      // if (this.$route.params.address !== (this.address && this.address.id)) {
-      //   this.getAddress();
-      // }
+    filteredData() {
+      return this.allTxs
+        .slice()
+        .filter(r =>
+          this.searchValue ? r.address.includes(this.searchValue) : true
+        );
+    },
+    dataList() {
+      const { property, order } = this.sort;
+      const { pageIndex, pageSize } = this.pagination;
+
+      let data = this.filteredData.slice();
+
+      if (property && order) {
+        data = data.sort((a, b) => {
+          a = a[property];
+          b = b[property];
+
+          if (typeof a === 'number') {
+            return order === 'asc' ? a - b : b - a;
+          }
+
+          return order === 'asc' ? a > b : a < b;
+        });
+      }
+
+      data = data.splice(pageIndex * pageSize, pageSize);
+
+      return data;
+    },
+    columns() {
+      let props = [
+        {
+          title: `Address`,
+          value: `address`,
+          key: item => item.address,
+          align: 'left',
+          // width: '96px',
+          renderComponent: Address,
+        },
+        {
+          title: `Transactions`,
+          value: `transactions`,
+          width: '180px',
+          align: 'right',
+          key: item => item.address,
+          render: value => formatNumber(value),
+        },
+        {
+          title: `Available ONE`,
+          value: `balance`,
+          key: item => item.address,
+          width: '200px',
+          align: 'right',
+          render: value => shortDecimals(value),
+        },
+        {
+          title: `Total ONE`,
+          value: `totalBalance`,
+          width: '200px',
+          align: 'right',
+          render: value => shortDecimals(value),
+        },
+      ];
+
+      return props;
     },
   },
   mounted() {
@@ -82,8 +209,12 @@ export default {
             resData.push({
               address: data.address[i],
               transactions: data['transaction-count'][i],
-              balance: data['available-ONE'][i],
-              totalBalance: data['total-balance'][i],
+              balance: data['available-ONE'][i]
+                ? parseFloat(data['available-ONE'][i].replace(/,/g, ''))
+                : 0,
+              totalBalance: data['total-balance'][i]
+                ? parseFloat(data['total-balance'][i].replace(/,/g, ''))
+                : 0,
             });
             i++;
           }
