@@ -1,5 +1,39 @@
 <style scoped lang="less">
 @import '../less/common.less';
+
+.search {
+  width: 15em;
+  margin-left: @space-md;
+  flex: none;
+  height: 2em;
+  overflow: hidden;
+  position: relative;
+  color: var(--color-table-text);
+  border: 1px solid var(--color-table-text);
+  border-radius: 2em;
+  .search-icon {
+    position: absolute;
+    top: 50%;
+    left: @space-sm;
+    transform: translateY(-50%);
+  }
+  input[type='text'] {
+    border-radius: 2em;
+    padding: @space-sm @space-md;
+    padding-left: 3em;
+    border: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    &::placeholder {
+      color: var(--color-table-text);
+    }
+    &:focus {
+      outline: none;
+      box-shadow: none;
+    }
+  }
+}
 </style>
 
 <template>
@@ -12,7 +46,20 @@
           </header>
 
           <div class="explorer-card-body">
-            <PanelPagination :pagination="pagination" :total="allTxs.length" />
+            <PanelPagination
+              :pagination="pagination"
+              :total="filteredData.length"
+            >
+              <div class="search">
+                <font-awesome-icon class="search-icon" icon="search" />
+                <input
+                  v-model="searchValue"
+                  type="text"
+                  placeholder="Address"
+                  @keyup.enter="search"
+                />
+              </div>
+            </PanelPagination>
             <BaseGrid
               :sort="sort"
               :columns="columns"
@@ -56,6 +103,7 @@ export default {
         pageIndex: 0,
         pageSize: 20,
       },
+      searchValue: '',
     };
   },
   watch: {
@@ -72,11 +120,18 @@ export default {
     page() {
       return this.$route.query.page - 1 || 0;
     },
+    filteredData() {
+      return this.allTxs
+        .slice()
+        .filter(r =>
+          this.searchValue ? r.address.includes(this.searchValue) : true
+        );
+    },
     dataList() {
       const { property, order } = this.sort;
       const { pageIndex, pageSize } = this.pagination;
 
-      let data = this.allTxs.slice();
+      let data = this.filteredData.slice();
 
       if (property && order) {
         data = data.sort((a, b) => {

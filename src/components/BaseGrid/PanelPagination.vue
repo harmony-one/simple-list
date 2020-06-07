@@ -1,6 +1,8 @@
 <template>
   <div class="transactions-table explorer-card">
-    <header>
+    <header
+      style="display: flex; flex-direction: row; justify-content: space-between;"
+    >
       <div class="pagination-controls">
         <span class="total-tx-num">{{ txCount }} validators</span>
         <span class="page-controllers">
@@ -43,6 +45,7 @@
           </span>
         </span>
       </div>
+      <slot></slot>
     </header>
   </div>
 </template>
